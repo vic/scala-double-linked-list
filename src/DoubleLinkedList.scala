@@ -38,6 +38,10 @@ sealed trait DoubleLinked[+T]:
   // will never create an invalid pointer.
   def pointAt(index: Int): DoubleLinked[T]
 
+  // Splits into two lists, the second one starts with the current node.
+  def split(): (DoubleLinked[T], DoubleLinked[T])
+  def slice(fromInclusiveIndex: Int, toExclusiveIndex: Int): DoubleLinked[T]
+
 object DoubleLinked:
 
   given [T]: Conversion[DoubleLinked[T], Iterable[T]] =
@@ -65,6 +69,9 @@ object DoubleLinked:
 
     override def prepend[S](e: S) = update(e)
     override def append[S](e: S) = update(e)
+
+    override def split() = (this, this)
+    override def slice(fromInclusiveIndex: Int, toExclusiveIndex: Int) = this
 
   @throws[IllegalArgumentException](
     "if the list is empty or index is out of bounds"
@@ -108,3 +115,10 @@ object DoubleLinked:
           index,
           list.slice(0, index) ++ list.slice(index + 1, list.length)
         )
+
+    override def split() = (slice(0, index), slice(index, list.length))
+    override def slice(fromInclusiveIndex: Int, toExclusiveIndex: Int) =
+      val to = 0.max(toExclusiveIndex).min(list.length)
+      val from = 0.max(fromInclusiveIndex).min(to)
+      val lst = list.slice(from, to)
+      if lst.isEmpty then empty else NonEmpty(0, lst)

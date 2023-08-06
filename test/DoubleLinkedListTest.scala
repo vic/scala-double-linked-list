@@ -118,3 +118,16 @@ object DoubleLinkedListTest extends TestSuite:
             Some(3) == x.pointAt(99).value,
             Some(2) == x.pointAt(1).value
           )
+
+      test("split"):
+        test("on an empty list"):
+          val (a, b) = empty.split()
+          assert(empty == a, b == empty)
+
+        val x = DL.fromIterable(0.to(10)).pointAt(5)
+        test("partitions at node position in two sub-lists"):
+          val (a, b) = x.split()
+          assert(
+            a.toList == 0.to(4).toList,
+            b.toList == 5.to(10).toList
+          )
