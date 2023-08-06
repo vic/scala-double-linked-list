@@ -51,6 +51,7 @@ object DoubleLinkedListTest extends TestSuite:
 
       test("point at any index is always empty"):
         assert(
+          None == empty.valueIndex,
           empty == empty.pointAt(0),
           empty == empty.pointAt(-99),
           empty == empty.pointAt(99)
@@ -74,6 +75,7 @@ object DoubleLinkedListTest extends TestSuite:
           assert(x.toIterable.toList == List(99))
         test("pointing at out of bounds index does not move pointer"):
           assert(
+            a.valueIndex == Some(0),
             a == a.pointAt(0),
             a == a.pointAt(-99),
             a == a.pointAt(99)
@@ -83,7 +85,12 @@ object DoubleLinkedListTest extends TestSuite:
         val b = empty.append(1).append(2).last.get
 
         test("contains value"):
-          assert(b.value == Some(2), b.hasPrev, !b.hasNext)
+          assert(
+            b.value == Some(2),
+            b.hasPrev,
+            !b.hasNext,
+            b.valueIndex == Some(1)
+          )
 
         test("drop removes element"):
           val a = b.drop()

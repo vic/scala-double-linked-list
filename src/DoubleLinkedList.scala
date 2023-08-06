@@ -29,6 +29,9 @@ sealed trait DoubleLinked[+T]:
   def length: Int
   def size: Int = length
 
+  // The index of the current node in list
+  def valueIndex: Option[Int]
+
   // Move the pointer of current node to the given index.
   // Note that even when the user is responsible for checking that index is bounded
   // by the size of this list, this operation is safe, and providing invalid indices
@@ -47,6 +50,7 @@ object DoubleLinked:
     override def toIterable = Iterable.empty
 
     override def value = None
+    override def valueIndex = None
 
     override def prev = None
     override def next = None
@@ -78,6 +82,7 @@ object DoubleLinked:
       NonEmpty(index, list.updated(index, v))
 
     override def value = Some(list(index))
+    override def valueIndex = Some(index)
 
     override def prev =
       if index == 0 then None else Some(NonEmpty(index - 1, list))
