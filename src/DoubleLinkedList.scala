@@ -23,7 +23,6 @@ sealed trait DoubleLinked[+T]:
   // Removes current node from the list
   def drop(): DoubleLinked[T]
 
-  // Turns the double-linked list starting at this node into an Iterable
   def toIterable: Iterable[T]
 
   def length: Int
@@ -42,6 +41,14 @@ sealed trait DoubleLinked[+T]:
   def split(): (DoubleLinked[T], DoubleLinked[T])
   def slice(fromInclusiveIndex: Int, toExclusiveIndex: Int): DoubleLinked[T]
 
+  def insertNext[S >: T](l: DoubleLinked[S]): DoubleLinked[S]
+  def insertNext[S >: T](e: S): DoubleLinked[S] =
+    insertNext(DoubleLinked.empty[S].update(e))
+
+  def insertPrev[S >: T](l: DoubleLinked[S]): DoubleLinked[S]
+  def insertPrev[S >: T](e: S): DoubleLinked[S] =
+    insertPrev(DoubleLinked.empty[S].update(e))
+
 object DoubleLinked:
 
   given [T]: Conversion[DoubleLinked[T], Iterable[T]] =
@@ -50,7 +57,9 @@ object DoubleLinked:
   def fromIterable[T](i: Iterable[T]): DoubleLinked[T] =
     i.foldLeft(empty: DoubleLinked[T])(_ append _)
 
-  object empty extends DoubleLinked[Nothing]:
+  def empty[T]: DoubleLinked[T] = Empty
+
+  object Empty extends DoubleLinked[Nothing]:
     override def pointAt(index: Int) = this
     override def length = 0
     override def toIterable = Iterable.empty
@@ -73,6 +82,9 @@ object DoubleLinked:
     override def split() = (this, this)
     override def slice(fromInclusiveIndex: Int, toExclusiveIndex: Int) = this
 
+    override def insertNext[S](l: DoubleLinked[S]) = l
+    override def insertPrev[S](l: DoubleLinked[S]) = l
+
   @throws[IllegalArgumentException](
     "if the list is empty or index is out of bounds"
   )
@@ -85,7 +97,7 @@ object DoubleLinked:
       val idx = 0.max(index).min(list.length - 1)
       NonEmpty(idx, list)
 
-    override def toIterable = list.slice(index, list.length)
+    override def toIterable = list
 
     override def update[S >: T](v: S) =
       NonEmpty(index, list.updated(index, v))
@@ -122,3 +134,23 @@ object DoubleLinked:
       val from = 0.max(fromInclusiveIndex).min(to)
       val lst = list.slice(from, to)
       if lst.isEmpty then empty else NonEmpty(0, lst)
+
+    override def insertNext[S >: T](e: DoubleLinked[S]): DoubleLinked[S] =
+      if e.isEmpty then this
+      else
+        NonEmpty(
+          index,
+          list.slice(0, index + 1) ++
+            e.toList ++
+            list.slice(index + 1, list.length)
+        )
+
+    override def insertPrev[S >: T](e: DoubleLinked[S]): DoubleLinked[S] =
+      if e.isEmpty then this
+      else
+        NonEmpty(
+          index,
+          list.slice(0, index) ++
+            e.toList ++
+            list.slice(index, list.length)
+        )

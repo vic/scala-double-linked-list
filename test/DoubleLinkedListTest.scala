@@ -131,3 +131,23 @@ object DoubleLinkedListTest extends TestSuite:
             a.toList == 0.to(4).toList,
             b.toList == 5.to(10).toList
           )
+
+      test("insert"):
+        val x = DL.fromIterable(Seq(0, 1, 2)).pointAt(1)
+        val y = DL.fromIterable(Seq(10, 11))
+
+        test("an element as previous"):
+          val a = x.insertPrev(99)
+          assert(a.toList == List(0, 99, 1, 2))
+
+        test("an element as next"):
+          val a = x.insertNext(99)
+          assert(a.toList == List(0, 1, 99, 2))
+
+        test("a list as previous"):
+          val a = x.insertPrev(y)
+          assert(a.toList == List(0, 10, 11, 1, 2))
+
+        test("a list as next"):
+          val a = x.insertNext(y)
+          assert(a.toList == List(0, 1, 10, 11, 2))
