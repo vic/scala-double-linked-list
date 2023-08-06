@@ -26,60 +26,78 @@ sealed trait DoubleLinked[+T]:
   // Turns the double-linked list starting at this node into an Iterable
   def toIterable: Iterable[T]
 
+  def length: Int
+  def size: Int = length
+
+  // Move the pointer of current node to the given index.
+  // Note that even when the user is responsible for checking that index is bounded
+  // by the size of this list, this operation is safe, and providing invalid indices
+  // will never create an invalid pointer.
+  def pointAt(index: Int): DoubleLinked[T]
+
 object DoubleLinked:
+
+  def fromIterable[T](i: Iterable[T]): DoubleLinked[T] =
+    if i.isEmpty then empty
+    else i.foldLeft(empty: DoubleLinked[T])(_ append _)
+
   object empty extends DoubleLinked[Nothing]:
+    override def pointAt(index: Int) = this
+    override def length = 0
+    override def toIterable = Iterable.empty
 
-    def toIterable: Iterable[Nothing] = Iterable.empty
+    override def value = None
 
-    def value: Option[Nothing] = None
+    override def prev = None
+    override def next = None
 
-    def prev: Option[DoubleLinked[Nothing]] = None
-    def next: Option[DoubleLinked[Nothing]] = None
+    override def first = None
+    override def last = None
 
-    def first: Option[DoubleLinked[Nothing]] = None
-    def last: Option[DoubleLinked[Nothing]] = None
+    override def update[S](e: S) = NonEmpty(0, List(e))
+    override def drop() = this
 
-    def update[S](e: S): DoubleLinked[S] = new NonEmpty(0, List(e))
-    def drop(): DoubleLinked[Nothing] = this
-
-    def prepend[S](e: S): DoubleLinked[S] = update(e)
-    def append[S](e: S): DoubleLinked[S] = update(e)
+    override def prepend[S](e: S) = update(e)
+    override def append[S](e: S) = update(e)
 
   @throws[IllegalArgumentException](
     "if the list is empty or index is out of bounds"
   )
-  final private[DoubleLinked] class NonEmpty[+T](index: Int, list: List[T])
+  final private[DoubleLinked] case class NonEmpty[+T](index: Int, list: List[T])
       extends DoubleLinked[T]:
     require(list.nonEmpty && index >= 0 && index < list.length)
 
-    def toIterable: Iterable[T] = list.slice(index, list.length)
+    override def length = list.length
+    override def pointAt(index: Int) =
+      val idx = 0.max(index).min(list.length - 1)
+      NonEmpty(idx, list)
 
-    def update[S >: T](v: S): DoubleLinked[S] =
-      new NonEmpty(index, list.updated(index, v))
+    override def toIterable = list.slice(index, list.length)
 
-    def value: Option[T] = Some(list(index))
+    override def update[S >: T](v: S) =
+      NonEmpty(index, list.updated(index, v))
 
-    def prev: Option[DoubleLinked[T]] =
-      if index == 0 then None else Some(new NonEmpty(index - 1, list))
+    override def value = Some(list(index))
 
-    def next: Option[DoubleLinked[T]] =
+    override def prev =
+      if index == 0 then None else Some(NonEmpty(index - 1, list))
+
+    override def next =
       if index == list.length - 1 then None
-      else Some(new NonEmpty(index + 1, list))
+      else Some(NonEmpty(index + 1, list))
 
-    def first: Option[DoubleLinked[T]] = Some(new NonEmpty(0, list))
-    def last: Option[DoubleLinked[T]] = Some(
-      new NonEmpty(list.length - 1, list)
-    )
+    override def first = Some(NonEmpty(0, list))
+    override def last = Some(NonEmpty(list.length - 1, list))
 
-    def prepend[S >: T](e: S): DoubleLinked[S] =
-      new NonEmpty(index + 1, e +: list)
-    def append[S >: T](e: S): DoubleLinked[S] = new NonEmpty(index, list :+ e)
+    override def prepend[S >: T](e: S) =
+      NonEmpty(index + 1, e +: list)
+    override def append[S >: T](e: S) = NonEmpty(index, list :+ e)
 
-    def drop(): DoubleLinked[T] =
+    override def drop() =
       if index == 0 && list.length == 1 then empty
-      else if !hasNext then new NonEmpty(index - 1, list.slice(0, index))
+      else if !hasNext then NonEmpty(index - 1, list.slice(0, index))
       else
-        new NonEmpty(
+        NonEmpty(
           index,
           list.slice(0, index) ++ list.slice(index + 1, list.length)
         )
