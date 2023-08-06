@@ -38,6 +38,8 @@ sealed trait DoubleLinked[+T]:
   def pointAt(index: Int): DoubleLinked[T]
   def pointAtNext: DoubleLinked[T]
   def pointAtPrev: DoubleLinked[T]
+  def pointAtFirst: DoubleLinked[T]
+  def pointAtLast: DoubleLinked[T]
 
   // Splits into two lists, the second one starts with the current node.
   def split(): (DoubleLinked[T], DoubleLinked[T])
@@ -68,6 +70,8 @@ object DoubleLinked:
     override def pointAt(index: Int) = this
     override def pointAtNext = this
     override def pointAtPrev = this
+    override def pointAtFirst = this
+    override def pointAtLast = this
 
     override def value = None
     override def valueIndex = None
@@ -95,17 +99,19 @@ object DoubleLinked:
   )
   final private[DoubleLinked] case class NonEmpty[+T](index: Int, list: List[T])
       extends DoubleLinked[T]:
-    require(list.nonEmpty && index >= 0 && index < list.length)
+    require(list.nonEmpty && index >= 0 && index < length)
 
-    override def length = list.length
+    override lazy val length = list.length
     override def toIterable = list
 
     override def pointAt(index: Int) =
-      val idx = 0.max(index).min(list.length - 1)
+      val idx = 0.max(index).min(length - 1)
       NonEmpty(idx, list)
 
     override def pointAtNext = pointAt(index + 1)
     override def pointAtPrev = pointAt(index - 1)
+    override def pointAtFirst = pointAt(0)
+    override def pointAtLast = pointAt(length - 1)
 
     override def update[S >: T](v: S) =
       NonEmpty(index, list.updated(index, v))
@@ -117,28 +123,28 @@ object DoubleLinked:
       if index == 0 then None else Some(NonEmpty(index - 1, list))
 
     override def next =
-      if index == list.length - 1 then None
+      if index == length - 1 then None
       else Some(NonEmpty(index + 1, list))
 
     override def first = Some(NonEmpty(0, list))
-    override def last = Some(NonEmpty(list.length - 1, list))
+    override def last = Some(NonEmpty(length - 1, list))
 
     override def prepend[S >: T](e: S) =
       NonEmpty(index + 1, e +: list)
     override def append[S >: T](e: S) = NonEmpty(index, list :+ e)
 
     override def drop() =
-      if index == 0 && list.length == 1 then empty
+      if index == 0 && length == 1 then empty
       else if !hasNext then NonEmpty(index - 1, list.slice(0, index))
       else
         NonEmpty(
           index,
-          list.slice(0, index) ++ list.slice(index + 1, list.length)
+          list.slice(0, index) ++ list.slice(index + 1, length)
         )
 
-    override def split() = (slice(0, index), slice(index, list.length))
+    override def split() = (slice(0, index), slice(index, length))
     override def slice(fromInclusiveIndex: Int, toExclusiveIndex: Int) =
-      val to = 0.max(toExclusiveIndex).min(list.length)
+      val to = 0.max(toExclusiveIndex).min(length)
       val from = 0.max(fromInclusiveIndex).min(to)
       val lst = list.slice(from, to)
       if lst.isEmpty then empty else NonEmpty(0, lst)
@@ -150,7 +156,7 @@ object DoubleLinked:
           index,
           list.slice(0, index + 1) ++
             e.toList ++
-            list.slice(index + 1, list.length)
+            list.slice(index + 1, length)
         )
 
     override def insertPrev[S >: T](e: DoubleLinked[S]): DoubleLinked[S] =
@@ -160,5 +166,5 @@ object DoubleLinked:
           index,
           list.slice(0, index) ++
             e.toList ++
-            list.slice(index, list.length)
+            list.slice(index, length)
         )
