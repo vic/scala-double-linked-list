@@ -36,6 +36,8 @@ sealed trait DoubleLinked[+T]:
   // by the size of this list, this operation is safe, and providing invalid indices
   // will never create an invalid pointer.
   def pointAt(index: Int): DoubleLinked[T]
+  def pointAtNext: DoubleLinked[T]
+  def pointAtPrev: DoubleLinked[T]
 
   // Splits into two lists, the second one starts with the current node.
   def split(): (DoubleLinked[T], DoubleLinked[T])
@@ -60,9 +62,12 @@ object DoubleLinked:
   def empty[T]: DoubleLinked[T] = Empty
 
   object Empty extends DoubleLinked[Nothing]:
-    override def pointAt(index: Int) = this
     override def length = 0
     override def toIterable = Iterable.empty
+
+    override def pointAt(index: Int) = this
+    override def pointAtNext = this
+    override def pointAtPrev = this
 
     override def value = None
     override def valueIndex = None
@@ -93,11 +98,14 @@ object DoubleLinked:
     require(list.nonEmpty && index >= 0 && index < list.length)
 
     override def length = list.length
+    override def toIterable = list
+
     override def pointAt(index: Int) =
       val idx = 0.max(index).min(list.length - 1)
       NonEmpty(idx, list)
 
-    override def toIterable = list
+    override def pointAtNext = pointAt(index + 1)
+    override def pointAtPrev = pointAt(index - 1)
 
     override def update[S >: T](v: S) =
       NonEmpty(index, list.updated(index, v))
