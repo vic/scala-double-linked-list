@@ -32,7 +32,7 @@ object DoubleLinkedListTest extends TestSuite:
         assert(empty.last == None)
 
       test("toIterable is empty"):
-        assert(empty.toIterable.toList.isEmpty)
+        assert(empty.toSeq.isEmpty)
 
       test("drop returns the same empty list"):
         assert(empty == empty.drop())
@@ -72,7 +72,7 @@ object DoubleLinkedListTest extends TestSuite:
           assert(a.drop() == empty)
         test("update replaces value"):
           val x = a.update(99)
-          assert(x.toIterable.toList == List(99))
+          assert(x.toList == List(99))
         test("pointing at out of bounds index does not move pointer"):
           assert(
             a.valueIndex == Some(0),
@@ -102,13 +102,13 @@ object DoubleLinkedListTest extends TestSuite:
 
         test("prepend inserts at the head"):
           val x = b.prepend(0).first.get
-          assert(x.toIterable.toList == List(0, 1, 2))
+          assert(x.toList == List(0, 1, 2))
 
       test("fromIterable"):
         val x = DL.fromIterable(Seq(1, 2, 3))
 
         test("toIterable results in same seq"):
-          assert(x.toIterable.toList == List(1, 2, 3))
+          assert(x.to(Seq) == Seq(1, 2, 3))
 
         test("pointAt is bounds-safe"):
           assert(

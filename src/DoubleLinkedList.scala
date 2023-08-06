@@ -40,9 +40,11 @@ sealed trait DoubleLinked[+T]:
 
 object DoubleLinked:
 
+  given [T]: Conversion[DoubleLinked[T], Iterable[T]] =
+    _.toIterable
+
   def fromIterable[T](i: Iterable[T]): DoubleLinked[T] =
-    if i.isEmpty then empty
-    else i.foldLeft(empty: DoubleLinked[T])(_ append _)
+    i.foldLeft(empty: DoubleLinked[T])(_ append _)
 
   object empty extends DoubleLinked[Nothing]:
     override def pointAt(index: Int) = this
