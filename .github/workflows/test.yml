@@ -2,6 +2,7 @@ on:
   push:
 jobs:
   test:
+    needs: format
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
@@ -29,3 +30,19 @@ jobs:
           echo "  scala-cli fmt ."
           exit 1
         )
+
+  jitpack-commit:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: JitPack commit build
+        run: curl -vSL https://jitpack.io/com/github/$GITHUB_REPOSITORY/$GITHUB_SHA/build.log || true
+
+  jitpack-release:
+    needs: test
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'tags')
+    steps:
+      - name: JitPack release build
+        run: |
+          curl -vSL https://jitpack.io/com/github/$GITHUB_REPOSITORY/$(echo "${{github.ref}}" | sed 's#tags/##')/build.log || true

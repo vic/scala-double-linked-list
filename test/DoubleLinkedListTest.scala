@@ -1,10 +1,10 @@
 //> using test.dep "com.lihaoyi::utest:0.8.1"
 
-package com.github.vic.dll
+package io.github.vic.dll.test
 
 import utest._
 
-import com.github.vic.dll.{DoubleLinked => DL}
+import io.github.vic.dll.{DoubleLinked => DL}
 
 object DoubleLinkedListTest extends TestSuite:
 

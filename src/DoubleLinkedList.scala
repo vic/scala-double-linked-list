@@ -1,4 +1,4 @@
-package com.github.vic.dll
+package io.github.vic.dll
 
 sealed trait DoubleLinked[+T]:
   def value: Option[T]
