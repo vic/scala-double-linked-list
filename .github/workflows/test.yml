@@ -36,7 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: JitPack commit build
-        run: curl -vSL https://jitpack.io/com/github/$GITHUB_REPOSITORY/$GITHUB_SHA/build.log || true
+        run: |
+          set -x
+          curl -vSL https://jitpack.io/com/github/$GITHUB_REPOSITORY/$GITHUB_SHA/build.log || true
 
   jitpack-release:
     needs: test
@@ -45,4 +47,5 @@ jobs:
     steps:
       - name: JitPack release build
         run: |
+          set -x
           curl -vSL https://jitpack.io/com/github/$GITHUB_REPOSITORY/$(echo "${{github.ref}}" | sed 's#tags/##')/build.log || true
