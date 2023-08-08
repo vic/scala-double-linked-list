@@ -1,5 +1,6 @@
 before_install:
   - curl -o scala-cli https://raw.githubusercontent.com/VirtusLab/scala-cli/main/scala-cli.sh
   - chmod +x scala-cli
+  - mkdir -p $HOME/.m2/repository
 install:
-  - ./scala-cli --power publish local .
+  - ./scala-cli --power publish --server=false --publish.repository $HOME/.m2/repository .
