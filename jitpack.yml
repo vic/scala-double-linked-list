@@ -3,6 +3,6 @@ before_install:
   - chmod +x scala-cli
 install:
   - |
-    ./scala-cli --power publish --server=false --publish-repository $HOME/.m2/repository --version "$VERSION" .
+    ./scala-cli --power publish --server=false --publish-repository $HOME/.m2/repository --organization "$GROUP" --name "$ARTIFACT" --version "$VERSION" .
     mv -v $HOME/.m2/repository/$(echo $GROUP | tr '.' '/') $HOME/.m2/repository/$GROUP
-    tree $HOME/.m2/repository
+    ls -R $HOME/.m2/repository/
